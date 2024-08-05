@@ -5,14 +5,50 @@ from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 import fitz  # PyMuPDF
 from django.utils import timezone
-from io import BytesIO
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
 from .models import Employee
 
 
+def notify():
+    alert_threshold_date = timezone.now().date() + timedelta(days=60)
+    current_date = timezone.now().date()
 
+    # Query employees with upcoming passport or BRP expirations
+    upcoming_passport_expirations = Employee.objects.filter(
+        passport_expiry_date__lte=alert_threshold_date,
+        passport_expiry_date__gte=current_date
+    )
+    upcoming_brp_expirations = Employee.objects.filter(
+        brp_expiry_date__lte=alert_threshold_date,
+        brp_expiry_date__gte=current_date
+    )
+
+    # Create alerts with the required fields
+    alerts = [
+                 {
+                     'employee': employee,
+                     'type': 'passport',
+                     'date': employee.passport_expiry_date
+                 }
+                 for employee in upcoming_passport_expirations
+             ] + [
+                 {
+                     'employee': employee,
+                     'type': 'brp',
+                     'date': employee.brp_expiry_date
+                 }
+                 for employee in upcoming_brp_expirations
+             ]
+
+    context = {
+        'alerts': alerts,
+        'alerts_count': len(alerts),
+    }
+    return context
 
 def loginn(request):
     return render(request, 'login.html')
@@ -21,7 +57,7 @@ def loginn(request):
 def signin(request):
     if request.user.is_authenticated:
         messages.warning(request, "You are already logged in")
-        return redirect("/index/")
+        return redirect("/add_employee/")
     else:
         if request.method == 'POST':
             name = request.POST.get('username')
@@ -31,7 +67,7 @@ def signin(request):
 
             if user is not None:
                 login(request, user)
-                return redirect("/index/")
+                return redirect("/add_employee/")
             else:
                 messages.error(request, "Invalid Username or Password")
                 return redirect('/signin/')
@@ -45,14 +81,10 @@ def signout(request):
         return redirect("/")
 
 
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from .models import Employee
-from django.template.loader import render_to_string
-import pdfkit
 
 
 def add_employee(request):
+    notifications = notify()
     if request.method == 'POST':
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
@@ -80,7 +112,10 @@ def add_employee(request):
         print(f"Employee ID: {employee.id}")
 
         return redirect('generate_filled_pdf', employee_id=employee.id)
-    return render(request, 'index.html')
+    context = {
+        'alerts': notifications['alerts'],
+    }
+    return render(request, 'index.html',context)
 
 
 def generate_filled_pdf(request, employee_id):
@@ -122,6 +157,8 @@ def check_email(request):
 
 
 def send_email_view(request):
+    notifications = notify()
+
     if request.method == 'POST':
         subject = request.POST.get('subject')
         message = request.POST.get('message')
@@ -143,52 +180,22 @@ def send_email_view(request):
             return redirect('send_email')  # Redirect to the same page to show the message
         else:
             messages.error(request, 'Both subject and message are required.')
-
-    return render(request, 'send_email.html')
-
-
-def index(request):
-    alert_threshold_date = timezone.now().date() + timedelta(days=60)
-    current_date = timezone.now().date()
-
-    # Query employees with upcoming passport or BRP expirations
-    upcoming_passport_expirations = Employee.objects.filter(
-        passport_expiry_date__lte=alert_threshold_date,
-        passport_expiry_date__gte=current_date
-    )
-    upcoming_brp_expirations = Employee.objects.filter(
-        brp_expiry_date__lte=alert_threshold_date,
-        brp_expiry_date__gte=current_date
-    )
-
-    # Create alerts with the required fields
-    alerts = [
-                 {
-                     'employee': employee,
-                     'type': 'passport',
-                     'date': employee.passport_expiry_date
-                 }
-                 for employee in upcoming_passport_expirations
-             ] + [
-                 {
-                     'employee': employee,
-                     'type': 'brp',
-                     'date': employee.brp_expiry_date
-                 }
-                 for employee in upcoming_brp_expirations
-             ]
-
     context = {
-        'alerts': alerts,
-        'alerts_count': len(alerts),
+        'alerts': notifications['alerts'],
     }
-    return render(request, 'index.html', context)
+    return render(request, 'send_email.html', context)
 
 
 def employee_list(request):
+    notifications = notify()
     employees = Employee.objects.all()
-    return render(request, 'employee_details.html', {'employees': employees})
 
+    context = {
+        'alerts': notifications['alerts'],
+        'employees': employees,
+    }
+
+    return render(request, 'employee_details.html', context)
 
 def update_employee(request):
     if request.method == 'POST':
@@ -215,6 +222,7 @@ def update_employee(request):
     else:
         # Return an error or redirect if the method is not POST
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 
 def delete_employee(request):
     if request.method == 'POST':
