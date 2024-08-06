@@ -1,10 +1,8 @@
 from django.urls import path
 from . import views
 
-
 urlpatterns = [
-    path('', views.loginn),
-    path('signin/', views.signin, name='signin'),
+    path('', views.signin, name='signin'),
     path('signout/', views.signout, name='signout'),
     path('add_employee/', views.add_employee, name='add_employee'),
     path('generate_filled_pdf/<int:employee_id>/', views.generate_filled_pdf, name='generate_filled_pdf'),

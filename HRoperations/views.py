@@ -50,6 +50,7 @@ def notify():
     }
     return context
 
+
 def loginn(request):
     return render(request, 'login.html')
 
@@ -79,8 +80,6 @@ def signout(request):
         logout(request)
         messages.success(request, "Logged out successfully")
         return redirect("/")
-
-
 
 
 def add_employee(request):
@@ -115,7 +114,7 @@ def add_employee(request):
     context = {
         'alerts': notifications['alerts'],
     }
-    return render(request, 'index.html',context)
+    return render(request, 'index.html', context)
 
 
 def generate_filled_pdf(request, employee_id):
@@ -152,8 +151,6 @@ def check_email(request):
         'is_taken': Employee.objects.filter(email=email).exists()
     }
     return JsonResponse(data)
-
-
 
 
 def send_email_view(request):
@@ -196,6 +193,7 @@ def employee_list(request):
     }
 
     return render(request, 'employee_details.html', context)
+
 
 def update_employee(request):
     if request.method == 'POST':

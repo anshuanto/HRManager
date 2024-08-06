@@ -3,6 +3,7 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
+
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'HRchecklist.settings')
 
@@ -22,7 +23,7 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour=0, minute=0),
     },
     'send-email-to-even-id-employees-every-10-seconds': {
-        'task': 'HRoperations.tasks.send_email_to_even_id_employees',
+        'task': 'HRoperations.tasks.send_email_to_even_numbered_employees',
         'schedule': 10.0,
     },
 }

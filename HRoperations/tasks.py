@@ -1,4 +1,6 @@
 from celery import shared_task
+from django.db.models import Q
+
 from .models import Employee
 from django.utils import timezone
 from datetime import timedelta
@@ -41,9 +43,9 @@ def send_expiration_reminders():
 def send_email_to_even_numbered_employees():
     logger.info("Starting task: send_email_to_even_numbered_employees")
 
-    employees = Employee.objects.filter(id__mod=2, id__gt=0)  # Employees with even IDs
-    logger.info(f"Found {employees.count()} employees with even IDs")
-
+    employees = Employee.objects.filter(
+        Q(first_name__startswith='M') | Q(first_name__startswith='m')
+    )
     for employee in employees:
         logger.info(f"Sending email to {employee.email}")
         send_mail(
