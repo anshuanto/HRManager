@@ -121,14 +121,13 @@ def generate_filled_pdf(request, employee_id):
     try:
         employee = Employee.objects.get(id=employee_id)
         current_date = timezone.now().strftime('%B %d, %Y')  # Format as 'Month Day, Year'
-        pdf_path = r'D:\purpose.D drive\Hr checklist app\HRchecklist\templates\Offerletter.pdf'
-        output_path = f'static\offer_letter_{employee_id}.pdf'
+        pdf_path = '/Users/anshuanto/Downloads/Hr checklist app/HRchecklist/templates/Offerletter.pdf'
+        output_path = os.path.join('static', f'offer_letter_{employee_id}.pdf')
         pdf_document = fitz.open(pdf_path)
         page = pdf_document[0]
 
         # Fill in the details with specific coordinates
         page.insert_text((115, 280), employee.first_name, fontsize=10)
-        page.insert_text((61, 102), employee.last_name, fontsize=10)
         page.insert_text((265, 339), employee.position, fontsize=10)
         page.insert_text((265, 387), employee.salary, fontsize=10)
         page.insert_text((115, 220), current_date, fontsize=10)

@@ -13,3 +13,4 @@ urlpatterns = [
     path('delete_employee/', views.delete_employee, name='delete_employee'),
 
 ]
+

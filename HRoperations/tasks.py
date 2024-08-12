@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def send_expiration_reminders():
-    two_months_from_now = timezone.now() + timedelta(days=1)
+    two_months_from_now = timezone.now() + timedelta(days=60)
     employees = Employee.objects.filter(
         passport_expiry_date__lte=two_months_from_now,
         passport_expiry_date__gte=timezone.now()
@@ -33,7 +33,7 @@ def send_expiration_reminders():
             'BRP Expiry Date: {employee.brp_expiry_date}\n\n'
             'Please take the necessary actions.\n\n'
             'Best regards,\nHR Team',
-            'your_hr_email@gmail.com',
+            'anshuanto37@gmail.com',
             [employee.email],
             fail_silently=False,
         )
@@ -53,7 +53,7 @@ def send_email_to_even_numbered_employees():
             f'Dear {employee.first_name},\n\n'
             'This is a periodic reminder.\n\n'
             'Best regards,\nHR Team',
-            'your_hr_email@gmail.com',
+            'anshuanto37@gmail.com',
             [employee.email],
             fail_silently=False,
         )
