@@ -5,6 +5,7 @@ from .models import Employee
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import send_mail
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ def send_expiration_reminders():
             'BRP Expiry Date: {employee.brp_expiry_date}\n\n'
             'Please take the necessary actions.\n\n'
             'Best regards,\nHR Team',
-            'anshuanto37@gmail.com',
+            settings.DEFAULT_FROM_EMAIL,
             [employee.email],
             fail_silently=False,
         )
@@ -53,7 +54,7 @@ def send_email_to_even_numbered_employees():
             f'Dear {employee.first_name},\n\n'
             'This is a periodic reminder.\n\n'
             'Best regards,\nHR Team',
-            'anshuanto37@gmail.com',
+            settings.DEFAULT_FROM_EMAIL,
             [employee.email],
             fail_silently=False,
         )

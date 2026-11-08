@@ -1,0 +1,18 @@
+# local data - never commit
+db.sqlite3
+documents/
+static/offer_letter_*.pdf
+staticfiles/
+dump.rdb
+celerybeat-schedule*
+.env
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
